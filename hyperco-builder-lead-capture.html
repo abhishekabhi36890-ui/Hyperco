@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hyperco — Jersey Builder Lead Capture</title>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --navy: #171730;
+  --navy-light: #1e1e3a;
+  --navy-card: #232348;
+  --teal: #5DFFC5;
+  --white: #ffffff;
+  --gray: #a0a0b8;
+  --gray-light: #c8c8d8;
+}
+
+body {
+  background: var(--navy);
+  color: var(--white);
+  font-family: 'Inter', sans-serif;
+  line-height: 1.6;
+}
+
+h1, h2, h3, h4 {
+  font-family: 'Oswald', sans-serif;
+  text-transform: uppercase;
+  font-style: italic;
+  letter-spacing: 1px;
+}
+
+/* ===== PRODUCT PAGE MOCK (BEHIND OVERLAY) ===== */
+.product-page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 24px;
+}
+
+.product-nav {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 0;
+  border-bottom: 1px solid rgba(255,255,255,0.06);
+  margin-bottom: 40px;
+}
+
+.nav-logo {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  font-weight: 700;
+  color: var(--teal);
+  letter-spacing: 3px;
+}
+
+.nav-links {
+  display: flex;
+  gap: 24px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: var(--gray);
+  text-decoration: none;
+  font-size: 14px;
+  transition: color 0.2s;
+}
+
+.nav-links a:hover { color: var(--white); }
+
+.product-layout {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: start;
+}
+
+.product-image {
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--navy-light);
+}
+
+.product-image img {
+  width: 100%;
+  display: block;
+}
+
+.product-details h1 {
+  font-size: 32px;
+  margin-bottom: 12px;
+}
+
+.product-price-tag {
+  font-family: 'Oswald', sans-serif;
+  font-size: 24px;
+  color: var(--teal);
+  margin-bottom: 8px;
+}
+
+.product-reviews {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.product-reviews .stars { color: var(--teal); font-size: 16px; }
+.product-reviews span { color: var(--gray); font-size: 14px; }
+
+.product-min {
+  color: var(--teal);
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 24px;
+}
+
+.build-now-btn {
+  width: 100%;
+  background: transparent;
+  color: var(--white);
+  border: 2px solid var(--white);
+  padding: 18px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  cursor: pointer;
+  transition: all 0.2s;
+  border-radius: 4px;
+  margin-bottom: 24px;
+}
+
+.build-now-btn:hover {
+  background: var(--teal);
+  border-color: var(--teal);
+  color: var(--navy);
+}
+
+.product-desc {
+  color: var(--gray-light);
+  font-size: 14px;
+  line-height: 1.8;
+  margin-bottom: 16px;
+}
+
+.product-features-list {
+  list-style: none;
+  margin-top: 16px;
+}
+
+.product-features-list li {
+  font-size: 14px;
+  color: var(--gray-light);
+  padding: 4px 0;
+}
+
+.product-features-list li::before {
+  content: "• ";
+  color: var(--teal);
+}
+
+/* ===== OVERLAY ===== */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 10, 26, 0.85);
+  backdrop-filter: blur(6px);
+  z-index: 100;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+
+.overlay.active { display: flex; }
+
+/* ===== LEAD CAPTURE MODAL ===== */
+.modal {
+  background: var(--navy-card);
+  border: 1.5px solid rgba(93,255,197,0.3);
+  border-radius: 16px;
+  max-width: 520px;
+  width: 100%;
+  max-height: 90vh;
+  overflow-y: auto;
+  position: relative;
+}
+
+.modal-close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: 24px;
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.modal-close:hover { background: rgba(255,255,255,0.1); color: var(--white); }
+
+.modal-header {
+  padding: 32px 32px 0;
+  text-align: center;
+}
+
+.modal-header .icon-circle {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: rgba(93,255,197,0.1);
+  border: 2px solid var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 16px;
+  font-size: 24px;
+}
+
+.modal-header h2 {
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.modal-header p {
+  color: var(--gray);
+  font-size: 14px;
+  max-width: 380px;
+  margin: 0 auto;
+}
+
+.modal-body {
+  padding: 28px 32px 32px;
+}
+
+.modal-form-group {
+  margin-bottom: 16px;
+}
+
+.modal-form-group label {
+  display: block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--gray);
+  margin-bottom: 6px;
+}
+
+.modal-form-group input,
+.modal-form-group select {
+  width: 100%;
+  background: var(--navy);
+  border: 1px solid rgba(255,255,255,0.1);
+  color: var(--white);
+  padding: 14px 16px;
+  border-radius: 4px;
+  font-size: 14px;
+  font-family: 'Inter', sans-serif;
+  transition: border-color 0.2s;
+}
+
+.modal-form-group input:focus,
+.modal-form-group select:focus {
+  outline: none;
+  border-color: var(--teal);
+}
+
+.modal-form-group input::placeholder { color: rgba(255,255,255,0.25); }
+
+.modal-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-submit {
+  width: 100%;
+  background: var(--teal);
+  color: var(--navy);
+  padding: 16px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-top: 8px;
+}
+
+.modal-submit:hover { background: #7dffda; transform: translateY(-1px); }
+
+.modal-skip {
+  display: block;
+  width: 100%;
+  text-align: center;
+  background: none;
+  border: none;
+  color: var(--gray);
+  font-size: 13px;
+  cursor: pointer;
+  margin-top: 12px;
+  padding: 8px;
+  transition: color 0.2s;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.modal-skip:hover { color: var(--white); }
+
+.modal-trust {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  padding: 16px 32px 24px;
+  border-top: 1px solid rgba(255,255,255,0.04);
+}
+
+.modal-trust-item {
+  font-size: 11px;
+  color: var(--gray);
+  text-align: center;
+}
+
+.modal-trust-item strong {
+  display: block;
+  color: var(--teal);
+  font-size: 14px;
+  margin-bottom: 2px;
+}
+
+/* ===== SUCCESS STATE ===== */
+.modal-success {
+  display: none;
+  text-align: center;
+  padding: 48px 32px;
+}
+
+.modal-success.active { display: block; }
+.modal-form.hidden { display: none; }
+
+.modal-success .check-circle {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: rgba(93,255,197,0.15);
+  border: 2px solid var(--teal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  font-size: 32px;
+  color: var(--teal);
+}
+
+.modal-success h2 {
+  font-size: 24px;
+  margin-bottom: 12px;
+}
+
+.modal-success p {
+  color: var(--gray);
+  font-size: 14px;
+  margin-bottom: 8px;
+}
+
+.modal-success .launch-btn {
+  width: 100%;
+  background: var(--teal);
+  color: var(--navy);
+  padding: 16px;
+  border: none;
+  border-radius: 4px;
+  font-family: 'Oswald', sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  cursor: pointer;
+  margin-top: 24px;
+  transition: all 0.2s;
+}
+
+.modal-success .launch-btn:hover { background: #7dffda; }
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .product-layout { grid-template-columns: 1fr; }
+  .modal-form-row { grid-template-columns: 1fr; }
+  .modal { margin: 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SIMULATED PRODUCT PAGE (what the user sees on the actual Shopify site) ===== -->
+<div class="product-page">
+  <nav class="product-nav">
+    <div class="nav-logo">HYPERCO SPORTS</div>
+    <ul class="nav-links">
+      <a href="#">Hockey</a>
+      <a href="#">Basketball</a>
+      <a href="#">Golf</a>
+      <a href="#">Gallery</a>
+      <a href="#">Contact</a>
+    </ul>
+  </nav>
+
+  <div class="product-layout">
+    <div class="product-image">
+      <img src="https://hypercosports.com/cdn/shop/files/Easytouse.jpg?v=1749875168&width=800" alt="Custom Hockey Jersey Builder" onerror="this.style.height='400px'; this.style.background='var(--navy-light)'">
+    </div>
+    <div class="product-details">
+      <h1>CUSTOM INLINE HOCKEY JERSEY</h1>
+      <div class="product-price-tag">$58.00 USD</div>
+      <div class="product-reviews">
+        <span class="stars">&#9733;&#9733;&#9733;&#9733;&#9733;</span>
+        <span>12 reviews</span>
+      </div>
+      <div class="product-min">Minimum order: 5 jerseys</div>
+
+      <button class="build-now-btn" id="buildNowBtn">BUILD NOW</button>
+
+      <p class="product-desc">Get your team ready to take on any opponent with our fully customizable roller hockey jerseys. Use our intuitive jersey builder to customize your jerseys just how you want them, and easily input your team roster.</p>
+      <p class="product-desc">Adult and youth sizes available.</p>
+      <p class="product-desc" style="font-weight:500; color:var(--white);">Features include:</p>
+      <ul class="product-features-list">
+        <li>Select patterns, colors, and logos within the jersey builder</li>
+        <li>Full sublimation — unlimited colors, no extra charge</li>
+        <li>Lightweight moisture-wicking mesh fabric</li>
+        <li>Reinforced stitching throughout</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ===== LEAD CAPTURE OVERLAY ===== -->
+<div class="overlay" id="leadOverlay">
+  <div class="modal">
+    <button class="modal-close" id="modalClose">&times;</button>
+
+    <!-- FORM STATE -->
+    <div class="modal-form" id="modalForm">
+      <div class="modal-header">
+        <div class="icon-circle">&#9881;</div>
+        <h2>BEFORE YOU BUILD</h2>
+        <p>Drop your details so we can save your progress and help if you need it. Takes 30 seconds.</p>
+      </div>
+
+      <div class="modal-body">
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>First Name</label>
+            <input type="text" placeholder="John" id="firstName">
+          </div>
+          <div class="modal-form-group">
+            <label>Last Name</label>
+            <input type="text" placeholder="Smith" id="lastName">
+          </div>
+        </div>
+
+        <div class="modal-form-group">
+          <label>Email</label>
+          <input type="email" placeholder="you@email.com" id="builderEmail">
+        </div>
+
+        <div class="modal-form-group">
+          <label>Team Name</label>
+          <input type="text" placeholder="e.g. Westside Warriors" id="builderTeam">
+        </div>
+
+        <div class="modal-form-row">
+          <div class="modal-form-group">
+            <label>How many jerseys?</label>
+            <select id="builderQty">
+              <option value="">Select...</option>
+              <option>5-10</option>
+              <option>11-20</option>
+              <option>21-30</option>
+              <option>30+</option>
+            </select>
+          </div>
+          <div class="modal-form-group">
+            <label>Phone (optional)</label>
+            <input type="tel" placeholder="(555) 123-4567" id="builderPhone">
+          </div>
+        </div>
+
+        <button class="modal-submit" id="modalSubmit">SAVE & START BUILDING &rarr;</button>
+        <button class="modal-skip" id="modalSkip">Skip for now, take me to the builder</button>
+      </div>
+
+      <div class="modal-trust">
+        <div class="modal-trust-item"><strong>500+</strong>Teams served</div>
+        <div class="modal-trust-item"><strong>24hr</strong>Expert response</div>
+        <div class="modal-trust-item"><strong>No spam</strong>Ever</div>
+      </div>
+    </div>
+
+    <!-- SUCCESS STATE -->
+    <div class="modal-success" id="modalSuccess">
+      <div class="check-circle">&#10003;</div>
+      <h2>YOU'RE ALL SET!</h2>
+      <p>We've saved your details. If you need any help during the build, our team will be standing by.</p>
+      <p style="color:var(--teal); font-weight:500; margin-top:12px;">Now go build something awesome.</p>
+      <button class="launch-btn" id="launchBuilder">LAUNCH THE BUILDER &rarr;</button>
+    </div>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  var overlay = document.getElementById('leadOverlay');
+  var buildBtn = document.getElementById('buildNowBtn');
+  var closeBtn = document.getElementById('modalClose');
+  var skipBtn = document.getElementById('modalSkip');
+  var submitBtn = document.getElementById('modalSubmit');
+  var launchBtn = document.getElementById('launchBuilder');
+  var form = document.getElementById('modalForm');
+  var success = document.getElementById('modalSuccess');
+
+  // Open overlay when "Build Now" is clicked
+  buildBtn.addEventListener('click', function() {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(function() {
+      document.getElementById('firstName').focus();
+    }, 300);
+  });
+
+  // Close overlay
+  closeBtn.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  });
+
+  // Close on overlay background click
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && overlay.classList.contains('active')) {
+      overlay.classList.remove('active');
+      document.body.style.overflow = '';
+    }
+  });
+
+  // Skip → go straight to builder
+  skipBtn.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    // In production, this would redirect to the actual builder URL
+    window.open('https://hypercosports.com/collections/hockey', '_blank');
+  });
+
+  // Submit form
+  submitBtn.addEventListener('click', function() {
+    var firstName = document.getElementById('firstName');
+    var email = document.getElementById('builderEmail');
+    var team = document.getElementById('builderTeam');
+
+    // Validate
+    var valid = true;
+    [firstName, email, team].forEach(function(f) {
+      if (!f.value.trim() || (f.type === 'email' && !f.value.includes('@'))) {
+        f.style.borderColor = '#ff4444';
+        valid = false;
+      } else {
+        f.style.borderColor = 'var(--teal)';
+      }
+    });
+
+    if (!valid) return;
+
+    // Show success state
+    form.classList.add('hidden');
+    success.classList.add('active');
+  });
+
+  // Launch builder from success state
+  launchBtn.addEventListener('click', function() {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+    window.open('https://hypercosports.com/collections/hockey', '_blank');
+  });
+
+  // Clear validation on focus
+  document.querySelectorAll('.modal-form-group input, .modal-form-group select').forEach(function(field) {
+    field.addEventListener('focus', function() {
+      this.style.borderColor = 'var(--teal)';
+    });
+    field.addEventListener('blur', function() {
+      if (!this.value) this.style.borderColor = 'rgba(255,255,255,0.1)';
+    });
+  });
+});
+</script>
+
+</body>
+</html>
